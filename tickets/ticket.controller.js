@@ -1,69 +1,52 @@
-const { readJSON, writeJSON } = require("../utils/fileHandler");
-
-const TICKETS_FILE = "./tickets/tickets.json";
+const axios = require("axios");
+const DB_API = "http://localhost:5000/api/tickets";
 
 exports.createTicket = (req, res) => {
-  const { title, description, priority } = req.body;
-  const tickets = readJSON(TICKETS_FILE);
+  const { subject, description, priority } = req.body;
+  const customer_id = req.user?.id;
 
-  const newTicket = {
-    id: tickets.length + 1,
-    title,
-    description,
-    priority,
-    status: "Open",
-    createdAt: new Date().toISOString(),
-    assignedTo: null
-  };
-
-  tickets.push(newTicket);
-  writeJSON(TICKETS_FILE, tickets);
-  res.json({ message: "Ticket created", ticket: newTicket });
+  axios.post(DB_API, { subject, description, priority, customer_id })
+    .then(response => res.status(201).json(response.data))
+    .catch(err => res.status(500).json({ error: err.message }));
 };
 
 exports.getTickets = (req, res) => {
-  const tickets = readJSON(TICKETS_FILE);
-  res.json(tickets);
+  axios.get(DB_API)
+    .then(response => res.json(response.data))
+    .catch(err => res.status(500).json({ error: err.message }));
 };
 
 exports.updateTicket = (req, res) => {
   const { id } = req.params;
-  const { title, description, priority } = req.body;
-  const tickets = readJSON(TICKETS_FILE);
-  const ticket = tickets.find(t => t.id == id);
+  const { subject, description, priority, status } = req.body;
 
-  if (!ticket) return res.status(404).json({ message: "Ticket not found" });
-
-  ticket.title = title || ticket.title;
-  ticket.description = description || ticket.description;
-  ticket.priority = priority || ticket.priority;
-
-  writeJSON(TICKETS_FILE, tickets);
-  res.json({ message: "Ticket updated", ticket });
+  axios.patch(`${DB_API}/${id}`, { subject, description, priority, status })
+    .then(response => res.json(response.data))
+    .catch(err => res.status(500).json({ error: err.message }));
 };
 
 exports.changeStatus = (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
-  const tickets = readJSON(TICKETS_FILE);
-  const ticket = tickets.find(t => t.id == id);
 
-  if (!ticket) return res.status(404).json({ message: "Ticket not found" });
-
-  ticket.status = status;
-  writeJSON(TICKETS_FILE, tickets);
-  res.json({ message: `Status changed to ${status}` });
+  axios.patch(`${DB_API}/${id}`, { status })
+    .then(response => res.json(response.data))
+    .catch(err => res.status(500).json({ error: err.message }));
 };
 
 exports.assignTicket = (req, res) => {
   const { id } = req.params;
-  const { agentId } = req.body;
-  const tickets = readJSON(TICKETS_FILE);
-  const ticket = tickets.find(t => t.id == id);
+  const { assigned_agent_id } = req.body;
 
-  if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+  axios.patch(`${DB_API}/${id}`, { assigned_agent_id })
+    .then(response => res.json(response.data))
+    .catch(err => res.status(500).json({ error: err.message }));
+};
 
-  ticket.assignedTo = agentId;
-  writeJSON(TICKETS_FILE, tickets);
-  res.json({ message: `Ticket assigned to agent ${agentId}` });
+exports.getTicketById = (req, res) => {
+  const { id } = req.params;
+
+  axios.get(`${DB_API}/${id}`)
+    .then(response => res.json(response.data))
+    .catch(err => res.status(500).json({ error: err.message }));
 };

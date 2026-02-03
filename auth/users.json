@@ -2,8 +2,29 @@
   {
     "id": 1,
     "email": "admin@example.com",
-    "password": "$2b$10$oRsr/BtZ6vDulIU5pzF70eK5PyqQ7Nrnado2AbOqhELMyHsURhCrK",
+    "password": "$2b$10$13czrdmgay8qZKozA0qDfucoGRkotFbW85iHaQnrrujXot1L7mZ9S",
     "role": "Admin",
+    "status": "Active"
+  },
+  {
+    "id": 2,
+    "email": "santa1@gmail.com",
+    "password": "$2b$10$9pezmEd7RzCi/OD5jmMZ3OwDaskEfi2BP24hh09BbVnl0OkJ2OUeK",
+    "role": "Customer",
+    "status": "Active"
+  },
+  {
+    "id": 3,
+    "email": "test-1770099780737@example.com",
+    "password": "$2b$10$pNGtRU1Wz4IwkvfXUeDq/OkkyD4sNyGPUbQ/u25yFMZhNP46KucRe",
+    "role": "Customer",
+    "status": "Active"
+  },
+  {
+    "id": 4,
+    "email": "test-gateway-1770099807679@example.com",
+    "password": "$2b$10$9TPHC8WGBexb.XrGka/gVeWaXJTRwFel7ydDVBVq.H5dN3Z1s3J8e",
+    "role": "Customer",
     "status": "Active"
   }
 ]

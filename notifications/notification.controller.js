@@ -1,28 +1,35 @@
-const { readJSON, writeJSON } = require("../utils/fileHandler");
+const axios = require("axios");
+const NOTIF_DB = "http://localhost:5000/api/notifications";
 
-const NOTIF_FILE = "./notifications/notifications.json";
-
-exports.getNotifications = (req, res) => {
-  const notifications = readJSON(NOTIF_FILE);
+exports.getNotifications = async (req, res) => {
   const userId = req.user.id;
-
-  // Optional: filter by user
-  const userNotifs = notifications.filter(n => n.userId === userId || n.userId === "all");
-  res.json(userNotifs);
+  try {
+    const response = await axios.get(`${NOTIF_DB}/user/${userId}`);
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.createNotification = (req, res) => {
+exports.createNotification = async (req, res) => {
   const { message, userId } = req.body;
-  const notifications = readJSON(NOTIF_FILE);
+  try {
+    const response = await axios.post(NOTIF_DB, {
+      user_id: userId,
+      message
+    });
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
-  const newNotif = {
-    id: notifications.length + 1,
-    message,
-    userId: userId || "all", // "all" means broadcast
-    createdAt: new Date().toISOString()
-  };
-
-  notifications.push(newNotif);
-  writeJSON(NOTIF_FILE, notifications);
-  res.json({ message: "Notification created", notification: newNotif });
+exports.markAsRead = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const response = await axios.patch(`${NOTIF_DB}/${id}/read`);
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };

@@ -1,72 +1,99 @@
+const axios = require("axios");
 const bcrypt = require("bcryptjs");
-const { readJSON, writeJSON } = require("../utils/fileHandler");
 
-const USERS_FILE = "./users/users.json";
+const DB_API = "http://localhost:5000/api/users";
 
 exports.createUser = async (req, res) => {
-  const { email, password, role } = req.body;
-  const users = readJSON(USERS_FILE);
+  const { email, password, role, department, name } = req.body;
+  // Note: Database service now handles "User already exists" check.
 
-  if (users.find(u => u.email === email)) {
-    return res.status(400).json({ message: "User already exists" });
+  // Forward to DB service
+  try {
+    const hashed = await bcrypt.hash(password, 10);
+    const response = await axios.post(DB_API, {
+      email,
+      password: hashed, // Send hashed password
+      role,
+      department,
+      name: name || email.split('@')[0] // default name if missing
+    });
+    res.status(201).json(response.data);
+  } catch (err) {
+    if (err.response) {
+      res.status(err.response.status).json(err.response.data);
+    } else {
+      res.status(500).json({ error: err.message });
+    }
   }
-
-  const hashed = await bcrypt.hash(password, 10);
-  const newUser = {
-    id: users.length + 1,
-    email,
-    password: hashed,
-    role,
-    status: "Active"
-  };
-
-  users.push(newUser);
-  writeJSON(USERS_FILE, users);
-  res.json({ message: "User created", user: { id: newUser.id, email, role } });
 };
 
 exports.getUsers = async (req, res) => {
-  const users = readJSON(USERS_FILE);
-  const safeUsers = users.map(({ password, ...u }) => u);
-  res.json(safeUsers);
+  try {
+    const response = await axios.get(DB_API);
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 exports.updateUser = async (req, res) => {
   const { id } = req.params;
-  const { email, role } = req.body;
-  const users = readJSON(USERS_FILE);
-  const user = users.find(u => u.id == id);
+  const { email, role, department } = req.body;
 
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  user.email = email || user.email;
-  user.role = role || user.role;
-
-  writeJSON(USERS_FILE, users);
-  res.json({ message: "User updated", user });
+  try {
+    const response = await axios.patch(`${DB_API}/${id}`, { email, role, department });
+    res.json(response.data);
+  } catch (err) {
+    if (err.response) {
+      res.status(err.response.status).json(err.response.data);
+    } else {
+      res.status(500).json({ error: err.message });
+    }
+  }
 };
 
 exports.changeStatus = async (req, res) => {
   const { id } = req.params;
-  const users = readJSON(USERS_FILE);
-  const user = users.find(u => u.id == id);
 
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  user.status = user.status === "Active" ? "Inactive" : "Active";
-  writeJSON(USERS_FILE, users);
-  res.json({ message: `User status changed to ${user.status}` });
+  try {
+    const response = await axios.patch(`${DB_API}/${id}/status`);
+    res.json(response.data);
+  } catch (err) {
+    if (err.response) {
+      res.status(err.response.status).json(err.response.data);
+    } else {
+      res.status(500).json({ error: err.message });
+    }
+  }
 };
 
 exports.resetPassword = async (req, res) => {
   const { id } = req.params;
   const { newPassword } = req.body;
-  const users = readJSON(USERS_FILE);
-  const user = users.find(u => u.id == id);
 
-  if (!user) return res.status(404).json({ message: "User not found" });
+  try {
+    const hashed = await bcrypt.hash(newPassword, 10);
+    const response = await axios.patch(`${DB_API}/${id}/password`, { password: hashed });
+    res.json(response.data);
+  } catch (err) {
+    if (err.response) {
+      res.status(err.response.status).json(err.response.data);
+    } else {
+      res.status(500).json({ error: err.message });
+    }
+  }
+};
+exports.deleteUser = async (req, res) => {
+  const { id } = req.params;
 
-  user.password = await bcrypt.hash(newPassword, 10);
-  writeJSON(USERS_FILE, users);
-  res.json({ message: "Password reset successfully" });
+  try {
+    const response = await axios.delete(`${DB_API}/${id}`);
+    res.json(response.data);
+  } catch (err) {
+    if (err.response) {
+      res.status(err.response.status).json(err.response.data);
+    } else {
+      res.status(500).json({ error: err.message });
+    }
+  }
 };
