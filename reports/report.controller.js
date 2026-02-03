@@ -1,35 +1,22 @@
-const { readJSON } = require("../utils/fileHandler");
+const axios = require("axios");
 
-const TICKETS_FILE = "./tickets/tickets.json";
+const REPORTS_DB = "http://localhost:5000/api/reports";
 
-exports.getSummary = (req, res) => {
-  const tickets = readJSON(TICKETS_FILE);
+exports.getSummary = async (req, res) => {
+  try {
+    const [summaryRes, performanceRes] = await Promise.all([
+      axios.get(`${REPORTS_DB}/dashboard-summary`),
+      axios.get(`${REPORTS_DB}/tickets-by-agent-resolved`)
+    ]);
 
-  const summary = {
-    totalTickets: tickets.length,
-    byStatus: {},
-    byPriority: {},
-    byAgent: {},
-    escalatedCount: 0
-  };
+    const summary = summaryRes.data;
+    const performance = performanceRes.data;
 
-  tickets.forEach(ticket => {
-    // Count by status
-    summary.byStatus[ticket.status] = (summary.byStatus[ticket.status] || 0) + 1;
-
-    // Count by priority
-    summary.byPriority[ticket.priority] = (summary.byPriority[ticket.priority] || 0) + 1;
-
-    // Count by agent
-    if (ticket.assignedTo) {
-      summary.byAgent[ticket.assignedTo] = (summary.byAgent[ticket.assignedTo] || 0) + 1;
-    }
-
-    // Escalated count
-    if (ticket.status === "Escalated") {
-      summary.escalatedCount++;
-    }
-  });
-
-  res.json(summary);
+    res.json({
+      ...summary,
+      performance
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };

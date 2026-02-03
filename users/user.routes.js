@@ -10,4 +10,6 @@ router.put("/:id", authorize(["Admin"]), userController.updateUser);
 router.patch("/:id/status", authorize(["Admin"]), userController.changeStatus);
 router.post("/:id/reset-password", authorize(["Admin"]), userController.resetPassword);
 
+router.delete("/:id", authorize(["Admin"]), userController.deleteUser);
+
 module.exports = router;

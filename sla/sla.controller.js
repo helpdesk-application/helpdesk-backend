@@ -1,32 +1,43 @@
-const { readJSON, writeJSON } = require("../utils/fileHandler");
+const axios = require("axios");
 const { hoursBetween } = require("../utils/timeUtils");
 
-const TICKETS_FILE = "./tickets/tickets.json";
+const TICKETS_API = "http://localhost:5000/api/tickets";
 
 // SLA rules (in hours)
 const SLA_RULES = {
-  High: 24,
-  Medium: 48,
-  Low: 72
+  HIGH: 24,
+  MEDIUM: 48,
+  LOW: 72
 };
 
-exports.checkSLA = (req, res) => {
-  const tickets = readJSON(TICKETS_FILE);
-  const now = new Date();
+exports.checkSLA = async (req, res) => {
+  try {
+    const response = await axios.get(TICKETS_API);
+    const tickets = response.data;
+    const now = new Date();
+    const updatedTickets = [];
 
-  const updated = tickets.map(ticket => {
-    if (ticket.status !== "Resolved" && ticket.status !== "Closed") {
-      const slaLimit = SLA_RULES[ticket.priority] || 48;
-      const age = hoursBetween(ticket.createdAt, now);
+    for (const ticket of tickets) {
+      if (ticket.status !== "Resolved" && ticket.status !== "RESOLVED" && ticket.status !== "CLOSED" && ticket.status !== "Closed") {
+        const slaLimit = SLA_RULES[ticket.priority] || 48;
+        const age = hoursBetween(ticket.created_at, now);
 
-      if (age > slaLimit && ticket.status !== "Escalated") {
-        ticket.status = "Escalated";
-        ticket.escalatedAt = now.toISOString();
+        if (age > slaLimit && ticket.status !== "Escalated" && ticket.status !== "ESCALATED") {
+          // Update ticket status to Escalated in DB
+          try {
+            const updateRes = await axios.patch(`${TICKETS_API}/${ticket._id}`, {
+              status: "ESCALATED"
+            });
+            updatedTickets.push(updateRes.data.ticket);
+          } catch (e) {
+            console.error(`Failed to escalate ticket ${ticket._id}:`, e.message);
+          }
+        }
       }
     }
-    return ticket;
-  });
 
-  writeJSON(TICKETS_FILE, updated);
-  res.json({ message: "SLA check complete", tickets: updated });
+    res.json({ message: "SLA check complete", escalatedCount: updatedTickets.length, escalatedTickets: updatedTickets });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };

@@ -1,66 +1,76 @@
-const { readJSON, writeJSON } = require("../utils/fileHandler");
+const axios = require("axios");
 
-const KB_FILE = "./knowledge/articles.json";
+const DB_API = "http://localhost:5000/api/knowledge";
 
-exports.createArticle = (req, res) => {
-  const { title, content, tags } = req.body;
-  const articles = readJSON(KB_FILE);
+exports.createArticle = async (req, res) => {
+  const { title, content, tags, category_id, visibility } = req.body;
 
-  const newArticle = {
-    id: articles.length + 1,
-    title,
-    content,
-    tags: tags || [],
-    createdAt: new Date().toISOString()
-  };
-
-  articles.push(newArticle);
-  writeJSON(KB_FILE, articles);
-  res.json({ message: "Article created", article: newArticle });
+  try {
+    const response = await axios.post(DB_API, {
+      title,
+      content,
+      tags: tags || [],
+      category_id,
+      visibility: visibility || "PUBLIC"
+    });
+    res.json({ message: "Article created", article: response.data.article });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.getArticles = (req, res) => {
-  const articles = readJSON(KB_FILE);
-  res.json(articles);
+exports.getArticles = async (req, res) => {
+  try {
+    const response = await axios.get(DB_API);
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.searchArticles = (req, res) => {
+exports.searchArticles = async (req, res) => {
   const { keyword } = req.query;
-  const articles = readJSON(KB_FILE);
+  try {
+    const response = await axios.get(DB_API);
+    const articles = response.data;
 
-  const results = articles.filter(a =>
-    a.title.toLowerCase().includes(keyword.toLowerCase()) ||
-    a.content.toLowerCase().includes(keyword.toLowerCase()) ||
-    a.tags.some(tag => tag.toLowerCase().includes(keyword.toLowerCase()))
-  );
+    // Search logic still relevant if DB service doesn't have search endpoint
+    const results = articles.filter(a =>
+      (a.title && a.title.toLowerCase().includes(keyword.toLowerCase())) ||
+      (a.content && a.content.toLowerCase().includes(keyword.toLowerCase()))
+    );
 
-  res.json(results);
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.updateArticle = (req, res) => {
+exports.updateArticle = async (req, res) => {
   const { id } = req.params;
-  const { title, content, tags } = req.body;
-  const articles = readJSON(KB_FILE);
-  const article = articles.find(a => a.id == id);
+  const { title, content, tags, visibility } = req.body;
 
-  if (!article) return res.status(404).json({ message: "Article not found" });
-
-  article.title = title || article.title;
-  article.content = content || article.content;
-  article.tags = tags || article.tags;
-
-  writeJSON(KB_FILE, articles);
-  res.json({ message: "Article updated", article });
+  try {
+    const response = await axios.patch(`${DB_API}/${id}`, { title, content, tags, visibility });
+    res.json({ message: "Article updated", article: response.data.article });
+  } catch (err) {
+    if (err.response && err.response.status === 404) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.deleteArticle = (req, res) => {
+exports.deleteArticle = async (req, res) => {
   const { id } = req.params;
-  let articles = readJSON(KB_FILE);
-  const exists = articles.find(a => a.id == id);
 
-  if (!exists) return res.status(404).json({ message: "Article not found" });
-
-  articles = articles.filter(a => a.id != id);
-  writeJSON(KB_FILE, articles);
-  res.json({ message: "Article deleted" });
+  try {
+    await axios.delete(`${DB_API}/${id}`);
+    res.json({ message: "Article deleted" });
+  } catch (err) {
+    if (err.response && err.response.status === 404) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+    res.status(500).json({ error: err.message });
+  }
 };

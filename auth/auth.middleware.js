@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const SECRET = "supersecretkey";
+const SECRET = process.env.SECRET || "dev-secret";
 
 function authorize(roles = []) {
   return (req, res, next) => {
