@@ -8,6 +8,7 @@ const notificationRoutes = require("./notifications/notification.routes");
 const kbRoutes = require("./knowledge/kb.routes");
 const reportRoutes = require("./reports/report.routes");
 const adminRoutes = require("./admin/admin.routes");
+const attachmentRoutes = require("./attachments/attachment.routes");
 
 const app = express();
 app.use(express.json());
@@ -16,6 +17,7 @@ app.use(cors());
 
 // Public routes
 app.use("/auth", authRoutes);
+app.use("/attachments/download", attachmentRoutes); // Allow public download for now or handle inside
 
 // Protect all other routes by default
 const { authorize } = require("./auth/auth.middleware");
@@ -29,6 +31,7 @@ app.use("/notifications", notificationRoutes);
 app.use("/kb", kbRoutes);
 app.use("/reports", reportRoutes);
 app.use("/admin", adminRoutes);
+app.use("/attachments", attachmentRoutes);
 
 app.get("/", (req, res) => res.send("Helpdesk Backend Running"));
 

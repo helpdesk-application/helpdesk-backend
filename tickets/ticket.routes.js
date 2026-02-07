@@ -8,7 +8,7 @@ router.post("/", authorize(["Admin", "Agent", "Customer", "Super Admin"]), ticke
 router.get("/", authorize(["Admin", "Agent", "Customer", "Super Admin"]), ticketController.getTickets);
 router.get("/:id", authorize(["Admin", "Agent", "Customer", "Super Admin"]), ticketController.getTicketById);
 // Only Admin or Agent can update/manage tickets
-router.put("/:id", authorize(["Admin", "Agent", "Super Admin"]), ticketController.updateTicket);
+router.patch("/:id", authorize(["Admin", "Agent", "Super Admin"]), ticketController.updateTicket);
 router.patch("/:id/status", authorize(["Admin", "Agent", "Super Admin"]), ticketController.changeStatus);
 router.patch("/:id/assign", authorize(["Admin", "Super Admin"]), ticketController.assignTicket);
 

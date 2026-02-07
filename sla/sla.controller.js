@@ -29,6 +29,24 @@ exports.checkSLA = async (req, res) => {
               status: "ESCALATED"
             });
             updatedTickets.push(updateRes.data.ticket);
+
+            // LOG SLA BREACH TO DB SERVICE
+            try {
+              // Assuming DB service is on port 5000 (based on TICKETS_API)
+              // But TICKETS_API is using localhost:5000 which IS the DB service.
+              // So we can use the same base URL.
+              const DB_SERVICE_URL = "http://localhost:5000/api/sla/tracking";
+              await axios.post(DB_SERVICE_URL, {
+                ticket_id: ticket._id,
+                priority: ticket.priority,
+                created_at: ticket.created_at,
+                breached: true
+              });
+              console.log(`Logged SLA breach for ticket ${ticket._id}`);
+            } catch (logErr) {
+              console.error(`Failed to log SLA breach for ${ticket._id}:`, logErr.message);
+            }
+
           } catch (e) {
             console.error(`Failed to escalate ticket ${ticket._id}:`, e.message);
           }
