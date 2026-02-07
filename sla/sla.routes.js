@@ -4,6 +4,6 @@ const slaController = require("./sla.controller");
 const { authorize } = require("../auth/auth.middleware");
 
 // Admin or Agent can trigger SLA check
-router.post("/check", authorize(["Admin", "Agent"]), slaController.checkSLA);
+router.post("/check", slaController.checkSLA);
 
 module.exports = router;

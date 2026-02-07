@@ -7,7 +7,7 @@ const { authorize } = require("../auth/auth.middleware");
 router.post("/", authorize(["Admin", "Agent"]), kbController.createArticle);
 router.get("/", kbController.getArticles);
 router.get("/search", kbController.searchArticles);
-router.put("/:id", authorize(["Admin", "Agent"]), kbController.updateArticle);
+router.patch("/:id", authorize(["Admin", "Agent"]), kbController.updateArticle);
 router.delete("/:id", authorize(["Admin"]), kbController.deleteArticle);
 
 module.exports = router;

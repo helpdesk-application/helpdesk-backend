@@ -13,7 +13,7 @@ exports.createArticle = async (req, res) => {
       category_id,
       visibility: visibility || "PUBLIC"
     });
-    res.json({ message: "Article created", article: response.data.article });
+    res.json({ message: "Article created", article: response.data }); // Response.data is the article object
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -37,7 +37,8 @@ exports.searchArticles = async (req, res) => {
     // Search logic still relevant if DB service doesn't have search endpoint
     const results = articles.filter(a =>
       (a.title && a.title.toLowerCase().includes(keyword.toLowerCase())) ||
-      (a.content && a.content.toLowerCase().includes(keyword.toLowerCase()))
+      (a.content && a.content.toLowerCase().includes(keyword.toLowerCase())) ||
+      (a.tags && a.tags.some(tag => tag.toLowerCase().includes(keyword.toLowerCase())))
     );
 
     res.json(results);
