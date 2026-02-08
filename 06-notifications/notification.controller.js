@@ -12,11 +12,12 @@ exports.getNotifications = async (req, res) => {
 };
 
 exports.createNotification = async (req, res) => {
-  const { message, userId } = req.body;
+  const { message, userId, ticketId } = req.body;
   try {
     const response = await axios.post(NOTIF_DB, {
       user_id: userId,
-      message
+      message,
+      ticket_id: ticketId
     });
     res.json(response.data);
   } catch (err) {

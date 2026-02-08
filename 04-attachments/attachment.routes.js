@@ -4,14 +4,14 @@ const multer = require("multer");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const attachmentController = require("./attachment.controller");
-const { authorize } = require("../auth/auth.middleware");
+const { authorize } = require("../01-auth/auth.middleware");
 
 const fs = require('fs');
 
 // Configure Multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, "../../uploads");
+        const uploadDir = path.join(__dirname, "uploads");
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }

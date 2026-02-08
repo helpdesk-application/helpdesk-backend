@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("./admin.controller");
-const { authorize } = require("../auth/auth.middleware");
+const { authorize } = require("../01-auth/auth.middleware");
 
 // Admin-only routes
 router.get("/dashboard", authorize(["Admin"]), adminController.getDashboard);

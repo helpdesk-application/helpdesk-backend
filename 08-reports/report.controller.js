@@ -14,6 +14,8 @@ exports.getSummary = async (req, res) => {
 
     res.json({
       ...summary,
+      avgResolutionTime: summary.avgResolutionTime,
+      slaCompliance: summary.slaCompliance,
       performance
     });
   } catch (err) {

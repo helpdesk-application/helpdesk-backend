@@ -31,7 +31,7 @@ exports.register = async (req, res) => {
     const response = await axios.post(DB_API, {
       email,
       password: hashed,
-      role: role || "Customer",
+      role: "Customer",
       // Name not required by DB model strictly, but let's provide default
       name: email.split('@')[0],
       department: "General"
@@ -85,7 +85,19 @@ exports.login = async (req, res) => {
     }
 
     // 3. Generate Token
-    const token = jwt.sign({ id: user._id, role: user.role }, SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user._id, role: user.role, name: user.name }, SECRET, { expiresIn: "7d" });
+
+    // 4. Log Activity
+    try {
+      await axios.post("http://localhost:5000/api/users/activities", {
+        user_id: user._id,
+        action: "LoggedIn",
+        description: `User logged in from ${req.ip}`,
+        ip_address: req.ip
+      });
+    } catch (logErr) {
+      console.error("[AUTH] Failed to log activity:", logErr.message);
+    }
 
     console.log('[AUTH] ✅ Login successful for:', email);
     res.json({
@@ -193,7 +205,11 @@ exports.changePassword = async (req, res) => {
 
   try {
     // 1. Fetch user from DB Service to get current hashed password
-    const userRes = await axios.get(`${DB_API}/${userId}`);
+    // Use /email/:email or a specialized fetch that includes password
+    // The current /id/ endpoint excludes password.
+    const currentUserRes = await axios.get(`${DB_API}/${userId}`);
+    const email = currentUserRes.data.email;
+    const userRes = await axios.get(`${DB_API}/email/${email}`);
     const user = userRes.data;
 
     // 2. Verify current password
