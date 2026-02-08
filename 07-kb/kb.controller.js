@@ -13,7 +13,7 @@ exports.createArticle = async (req, res) => {
       category_id,
       visibility: visibility || "PUBLIC"
     });
-    res.json({ message: "Article created", article: response.data }); // Response.data is the article object
+    res.json({ message: "Article created", article: response.data.article });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -22,7 +22,14 @@ exports.createArticle = async (req, res) => {
 exports.getArticles = async (req, res) => {
   try {
     const response = await axios.get(DB_API);
-    res.json(response.data);
+    let articles = response.data;
+
+    // Role-based filtering: Customers only see PUBLIC
+    if (req.user.role === 'Customer') {
+      articles = articles.filter(a => a.visibility !== 'INTERNAL');
+    }
+
+    res.json(articles);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

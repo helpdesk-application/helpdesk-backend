@@ -4,8 +4,10 @@ const bcrypt = require("bcryptjs");
 const DB_API = "http://localhost:5000/api/users";
 
 exports.getProfile = async (req, res) => {
+  console.log('[UserController] Fetching profile for user ID:', req.user?.id);
   try {
     const response = await axios.get(`${DB_API}/${req.user.id}`);
+    console.log('[UserController] DB response:', response.status);
     res.json(response.data);
   } catch (err) {
     if (err.response) return res.status(err.response.status).json(err.response.data);
@@ -23,6 +25,19 @@ exports.updateProfile = async (req, res) => {
 
   try {
     const response = await axios.patch(`${DB_API}/${req.user.id}`, updates);
+
+    // Log Activity
+    try {
+      await axios.post("http://localhost:5000/api/users/activities", {
+        user_id: req.user.id,
+        action: "ProfileUpdated",
+        description: `User ${req.user.name || req.user.email} updated their profile`,
+        ip_address: req.ip
+      });
+    } catch (logErr) {
+      console.error("[UserController] Failed to log activity:", logErr.message);
+    }
+
     res.json(response.data);
   } catch (err) {
     if (err.response) return res.status(err.response.status).json(err.response.data);
@@ -57,7 +72,14 @@ exports.createUser = async (req, res) => {
 exports.getUsers = async (req, res) => {
   try {
     const response = await axios.get(DB_API);
-    res.json(response.data);
+    let users = response.data;
+
+    // Department Isolation
+    if (req.user.role === 'Manager' || req.user.role === 'Agent') {
+      users = users.filter(u => u.department === req.user.department);
+    }
+
+    res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -65,10 +87,22 @@ exports.getUsers = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   const { id } = req.params;
-  const { email, role, department } = req.body;
+  const { email, role, department, password } = req.body;
 
   try {
-    const response = await axios.patch(`${DB_API}/${id}`, { email, role, department });
+    // Role Hierarchy: Check if target is Super Admin
+    if (req.user.role === 'Admin') {
+      const checkRes = await axios.get(`${DB_API}/${id}`);
+      if (checkRes.data.role === 'Super Admin') {
+        return res.status(403).json({ message: "Admin cannot modify Super Admin" });
+      }
+    }
+
+    const updates = { email, role, department };
+    if (password) {
+      updates.password = await bcrypt.hash(password, 10);
+    }
+    const response = await axios.patch(`${DB_API}/${id}`, updates);
     res.json(response.data);
   } catch (err) {
     if (err.response) {
@@ -114,6 +148,14 @@ exports.deleteUser = async (req, res) => {
   const { id } = req.params;
 
   try {
+    // Role Hierarchy: Check if target is Super Admin
+    if (req.user.role === 'Admin') {
+      const checkRes = await axios.get(`${DB_API}/${id}`);
+      if (checkRes.data.role === 'Super Admin') {
+        return res.status(403).json({ message: "Admin cannot delete Super Admin" });
+      }
+    }
+
     const response = await axios.delete(`${DB_API}/${id}`);
     res.json(response.data);
   } catch (err) {
@@ -122,5 +164,14 @@ exports.deleteUser = async (req, res) => {
     } else {
       res.status(500).json({ error: err.message });
     }
+  }
+};
+
+exports.getActivities = async (req, res) => {
+  try {
+    const response = await axios.get(`${DB_API}/activities/user/${req.user.id}`);
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

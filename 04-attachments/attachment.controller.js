@@ -5,7 +5,7 @@ const fs = require("fs");
 const DB_API = "http://localhost:5000/api/attachments";
 
 // Should be 'files' in backend root
-const UPLOAD_DIR = path.join(__dirname, "../../uploads");
+const UPLOAD_DIR = path.join(__dirname, "uploads");
 
 if (!fs.existsSync(UPLOAD_DIR)) {
     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
