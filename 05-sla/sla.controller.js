@@ -1,16 +1,8 @@
 const axios = require("axios");
 const { hoursBetween } = require("../utils/timeUtils");
 
-const TICKETS_API = "http://localhost:5000/api/tickets";
-const NOTIF_API = "http://localhost:5000/api/notifications";
-
-// SLA rules (in hours)
-const SLA_RULES = {
-  CRITICAL: 4,
-  HIGH: 24,
-  MEDIUM: 48,
-  LOW: 72
-};
+const TICKETS_API = process.env.DB_API + "tickets";
+const NOTIF_API = process.env.DB_API + "notifications";
 
 const createNotification = async (userId, message) => {
   try {
@@ -22,6 +14,17 @@ const createNotification = async (userId, message) => {
 
 exports.checkSLA = async (req, res) => {
   try {
+    // 1. Fetch SLA Rules from DB Service dynamically
+    const SLA_API = process.env.DB_API + "sla";
+    const slaRes = await axios.get(SLA_API);
+    const rules = slaRes.data;
+
+    // Create a mapping for quick lookup: { PRIORITY: resolution_time_hours }
+    const slaMapping = {};
+    rules.forEach(rule => {
+      slaMapping[rule.priority.toUpperCase()] = rule.resolution_time_hours;
+    });
+
     const response = await axios.get(TICKETS_API);
     const tickets = response.data;
     const now = new Date();
@@ -30,7 +33,8 @@ exports.checkSLA = async (req, res) => {
     for (const ticket of tickets) {
       // Don't check resolved/closed tickets
       if (!["RESOLVED", "CLOSED"].includes(ticket.status?.toUpperCase())) {
-        const slaLimit = SLA_RULES[ticket.priority?.toUpperCase()] || 48;
+        // Use the fetched rule, or fallback to 48 hours
+        const slaLimit = slaMapping[ticket.priority?.toUpperCase()] || 48;
         const age = hoursBetween(ticket.created_at, now);
 
         if (age > slaLimit && ticket.status?.toUpperCase() !== "ESCALATED") {
@@ -51,7 +55,7 @@ exports.checkSLA = async (req, res) => {
 
             // ESCALATION: Notify all Admins
             try {
-              const USERS_API = "http://localhost:5000/api/users";
+              const USERS_API = process.env.DB_API + "users";
               const usersRes = await axios.get(USERS_API);
               const admins = usersRes.data.filter(u => u.role === 'Admin' || u.role === 'Super Admin');
               for (const admin of admins) {
@@ -63,7 +67,7 @@ exports.checkSLA = async (req, res) => {
 
             // LOG SLA BREACH TO DB SERVICE
             try {
-              const DB_SERVICE_URL = "http://localhost:5000/api/sla/tracking";
+              const DB_SERVICE_URL = process.env.DB_API + "sla/tracking";
               await axios.post(DB_SERVICE_URL, {
                 ticket_id: ticket._id,
                 priority: ticket.priority,

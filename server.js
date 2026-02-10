@@ -1,4 +1,7 @@
 const express = require("express");
+const dotenv = require("dotenv");
+dotenv.config();
+
 const cors = require("cors");
 const authRoutes = require("./01-auth/auth.routes");
 const userRoutes = require("./02-users/user.routes");
@@ -9,13 +12,16 @@ const kbRoutes = require("./07-kb/kb.routes");
 const reportRoutes = require("./08-reports/report.routes");
 const adminRoutes = require("./admin/admin.routes"); // Admin doesn't have a numbered module yet, but falls under 01-auth/02-users scope.
 const attachmentRoutes = require("./04-attachments/attachment.routes");
-
 const app = express();
 app.use(express.json());
 // Enable CORS so the frontend (vite) can call this backend
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true,
+}));
 
 // Public routes
+app.get("/", (req, res) => res.send("Helpdesk Backend Running"));
 app.use("/auth", authRoutes);
 app.use("/attachments/download", attachmentRoutes); // Allow public download for now or handle inside
 
@@ -33,13 +39,12 @@ app.use("/reports", reportRoutes);
 app.use("/admin", adminRoutes);
 app.use("/attachments", attachmentRoutes);
 
-app.get("/", (req, res) => res.send("Helpdesk Backend Running"));
-
-app.listen(3001, () => {
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
   console.log("\n========================================");
   console.log("  Backend Server Started");
   console.log("========================================");
-  console.log("Server running on http://localhost:3001");
+  console.log("Server running on http://localhost:" + PORT);
   console.log("\nAvailable routes:");
   console.log("  POST   /auth/login");
   console.log("  POST   /auth/register");

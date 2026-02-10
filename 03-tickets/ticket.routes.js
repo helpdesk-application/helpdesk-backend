@@ -11,6 +11,7 @@ router.get("/:id", authorize(["Admin", "Agent", "Customer", "Super Admin", "Mana
 router.patch("/:id", authorize(["Admin", "Agent", "Super Admin", "Manager"]), ticketController.updateTicket);
 router.patch("/:id/status", authorize(["Admin", "Agent", "Super Admin", "Manager"]), ticketController.changeStatus);
 router.patch("/:id/assign", authorize(["Admin", "Super Admin", "Manager"]), ticketController.assignTicket);
+router.get("/:id/history", authorize(["Admin", "Agent", "Customer", "Super Admin", "Manager"]), ticketController.getTicketHistory);
 
 // Reply routes
 const replyController = require("./reply.controller");
