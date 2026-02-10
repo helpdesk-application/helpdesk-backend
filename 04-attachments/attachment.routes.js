@@ -31,18 +31,18 @@ const upload = multer({
 // Upload attachment (Protected)
 router.post("/",
     (req, res, next) => {
-        console.log('[Attachment] Received upload request');
+
         next();
     },
     authorize(),
     (req, res, next) => {
-        console.log('[Attachment] Authorized. Starting Multer...');
+
         upload.single("file")(req, res, (err) => {
             if (err) {
                 console.error('[Attachment] Multer Error:', err);
                 return res.status(400).json({ message: "File upload error", error: err.message });
             }
-            console.log('[Attachment] Multer success. File:', req.file ? req.file.filename : 'None');
+
             next();
         });
     },

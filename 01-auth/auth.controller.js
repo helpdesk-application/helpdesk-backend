@@ -8,7 +8,8 @@ const { generateResetToken } = require("./auth.utils");
 const resetTokens = new Map(); // email -> { token, expires }
 
 const DB_API = process.env.DB_API + "users";
-const SECRET = process.env.SECRET || "dev-secret";
+const SECRET = process.env.SECRET;
+if (!SECRET) throw new Error('FATAL: SECRET environment variable is not set.');
 
 exports.register = async (req, res) => {
   if (!req.body || Object.keys(req.body).length === 0) {
@@ -55,10 +56,10 @@ exports.login = async (req, res) => {
   }
   const { email, password } = req.body;
 
-  console.log('[AUTH] Login attempt for:', email);
+
 
   if (!email || !password) {
-    console.log('[AUTH] Missing email or password');
+
     return res.status(400).json({ message: "Email and password required" });
   }
 
@@ -70,7 +71,7 @@ exports.login = async (req, res) => {
       user = response.data;
     } catch (e) {
       if (e.response && e.response.status === 404) {
-        console.log('[AUTH] User not found:', email);
+
         return res.status(401).json({ message: "Invalid credentials" });
       }
       throw e;
@@ -78,7 +79,7 @@ exports.login = async (req, res) => {
 
     // 2. Compare password
     const passwordMatch = await bcrypt.compare(password, user.password);
-    console.log('[AUTH] Password match:', passwordMatch);
+
 
     if (!passwordMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
@@ -100,7 +101,7 @@ exports.login = async (req, res) => {
       console.error("[AUTH] Failed to log activity:", logErr.message);
     }
 
-    console.log('[AUTH] ✅ Login successful for:', email);
+
     res.json({
       token,
       user: {
@@ -129,7 +130,7 @@ exports.forgotPassword = async (req, res) => {
       if (e.response && e.response.status === 404) {
         // Security: Don't reveal user doesn't exist
         // But for this project, let's just return success to avoid confusion or log it
-        console.log(`[AUTH] Forgot Password: User ${email} not found.`);
+
         return res.json({ message: "If your email is registered, you will receive a reset link." });
       }
       throw e;
@@ -141,12 +142,7 @@ exports.forgotPassword = async (req, res) => {
 
     resetTokens.set(email, { token, expires });
 
-    // 3. Mock Email Sending
-    console.log("\n========================================");
-    console.log(`[MOCK EMAIL] Password Reset Request for: ${email}`);
-    console.log(`[MOCK EMAIL] Reset Token: ${token}`);
-    console.log(`[MOCK EMAIL] Link: http://localhost:5173/reset-password?token=${token}&email=${email}`);
-    console.log("========================================\n");
+    // TODO: Send actual password reset email in production
 
     res.json({ message: "If your email is registered, you will receive a reset link." });
 

@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
-const SECRET = process.env.SECRET || "dev-secret";
+const SECRET = process.env.SECRET;
+if (!SECRET) throw new Error('FATAL: SECRET environment variable is not set.');
 
 function authorize(roles = []) {
   return (req, res, next) => {
@@ -9,7 +10,7 @@ function authorize(roles = []) {
     try {
       const token = auth.split(" ")[1];
       const decoded = jwt.verify(token, SECRET);
-      console.log(`[AUTH-MIDDLEWARE] Request: ${req.method} ${req.originalUrl}, Role: ${decoded.role}, Allowed: ${roles}`);
+
       if (roles.length && !roles.includes(decoded.role)) {
         console.warn(`[AUTH-MIDDLEWARE] 403 Forbidden for role: ${decoded.role}`);
         return res.status(403).json({ message: "Forbidden" });
