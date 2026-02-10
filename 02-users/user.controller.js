@@ -4,10 +4,10 @@ const bcrypt = require("bcryptjs");
 const DB_API = process.env.DB_API + "users";
 
 exports.getProfile = async (req, res) => {
-  console.log('[UserController] Fetching profile for user ID:', req.user?.id);
+
   try {
     const response = await axios.get(`${DB_API}/${req.user.id}`);
-    console.log('[UserController] DB response:', response.status);
+
     res.json(response.data);
   } catch (err) {
     if (err.response) return res.status(err.response.status).json(err.response.data);

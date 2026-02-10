@@ -12,7 +12,7 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 }
 
 exports.uploadFile = async (req, res) => {
-    console.log('[AttachmentController] Processing upload. Body:', req.body);
+
     if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
     }
