@@ -7,7 +7,7 @@ const { generateResetToken } = require("./auth.utils");
 // In production, this should be in Redis or the User DB model
 const resetTokens = new Map(); // email -> { token, expires }
 
-const DB_API = "http://localhost:5000/api/users";
+const DB_API = process.env.DB_API + "users";
 const SECRET = process.env.SECRET || "dev-secret";
 
 exports.register = async (req, res) => {
@@ -89,11 +89,12 @@ exports.login = async (req, res) => {
 
     // 4. Log Activity
     try {
-      await axios.post("http://localhost:5000/api/users/activities", {
+      const clientIp = req.ip === '::1' ? '127.0.0.1' : req.ip;
+      await axios.post(process.env.DB_API + "users/activities", {
         user_id: user._id,
         action: "LoggedIn",
-        description: `User logged in from ${req.ip}`,
-        ip_address: req.ip
+        description: `User logged in from ${clientIp}`,
+        ip_address: clientIp
       });
     } catch (logErr) {
       console.error("[AUTH] Failed to log activity:", logErr.message);

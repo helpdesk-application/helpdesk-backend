@@ -1,7 +1,7 @@
 const axios = require("axios");
-const REPLIES_API = "http://localhost:5000/api/replies";
-const TICKETS_API = "http://localhost:5000/api/tickets";
-const NOTIF_API = "http://localhost:3000/api/notifications"; // Gateway URL for notifications
+const REPLIES_API = process.env.DB_API + "replies";
+const TICKETS_API = process.env.DB_API + "tickets";
+const NOTIF_API = process.env.DB_API + "notifications"; // Database service URL for notifications
 
 const createNotification = async (userId, message, ticketId) => {
     try {

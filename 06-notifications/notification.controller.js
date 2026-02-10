@@ -1,5 +1,5 @@
 const axios = require("axios");
-const NOTIF_DB = "http://localhost:5000/api/notifications";
+const NOTIF_DB = process.env.DB_API + "notifications";
 
 exports.getNotifications = async (req, res) => {
   const userId = req.user.id;

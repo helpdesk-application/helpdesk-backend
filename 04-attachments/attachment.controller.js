@@ -2,7 +2,7 @@ const axios = require("axios");
 const path = require("path");
 const fs = require("fs");
 
-const DB_API = "http://localhost:5000/api/attachments";
+const DB_API = process.env.DB_API + "attachments";
 
 // Should be 'files' in backend root
 const UPLOAD_DIR = path.join(__dirname, "uploads");

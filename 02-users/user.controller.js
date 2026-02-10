@@ -1,7 +1,7 @@
 const axios = require("axios");
 const bcrypt = require("bcryptjs");
 
-const DB_API = "http://localhost:5000/api/users";
+const DB_API = process.env.DB_API + "users";
 
 exports.getProfile = async (req, res) => {
   console.log('[UserController] Fetching profile for user ID:', req.user?.id);
@@ -28,11 +28,12 @@ exports.updateProfile = async (req, res) => {
 
     // Log Activity
     try {
-      await axios.post("http://localhost:5000/api/users/activities", {
+      const clientIp = req.ip === '::1' ? '127.0.0.1' : req.ip;
+      await axios.post(DB_API + "activities", {
         user_id: req.user.id,
         action: "ProfileUpdated",
         description: `User ${req.user.name || req.user.email} updated their profile`,
-        ip_address: req.ip
+        ip_address: clientIp
       });
     } catch (logErr) {
       console.error("[UserController] Failed to log activity:", logErr.message);
