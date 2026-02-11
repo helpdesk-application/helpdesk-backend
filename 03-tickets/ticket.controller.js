@@ -13,11 +13,14 @@ const createNotification = async (userId, message, ticketId) => {
 };
 
 const deptMapping = {
-  Billing: 'Finance',
-  Technical: 'IT Support', // Correct naming to match User DB
-  Support: 'IT Support',   // Common alias
+  Finance: 'Finance',
+  'IT Support': 'IT Support',
   Security: 'Security',
-  General: 'General'
+  General: 'General',
+  // Aliases for robustness
+  Billing: 'Finance',
+  Technical: 'IT Support',
+  Support: 'IT Support'
 };
 
 exports.createTicket = async (req, res) => {
@@ -93,8 +96,6 @@ exports.getTickets = async (req, res) => {
     // Filter based on role
     if (role === "Customer") {
       url = `${DB_API}/customer/${userId}`;
-    } else if (role === "Agent") {
-      url = `${DB_API}/agent/${userId}`;
     }
 
     const response = await axios.get(url);
@@ -106,6 +107,8 @@ exports.getTickets = async (req, res) => {
       tickets = tickets.filter(t => t.department === req.user.department);
     } else if (role === "Agent") {
       // Agents see tickets assigned to them OR tickets in their department
+      // We must check both because an agent might be assigned a ticket out of their department 
+      // OR they should see all unassigned tickets in their own department.
       tickets = tickets.filter(t =>
         String(t.assigned_agent_id?._id || t.assigned_agent_id) === String(userId) ||
         t.department === req.user.department

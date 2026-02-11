@@ -5,8 +5,8 @@ const sentimentKeywords = {
 };
 
 const categoryKeywords = {
-    Billing: ['invoice', 'charge', 'payment', 'refund', 'price', 'billing', 'subscription'],
-    Technical: ['bug', 'crash', 'code', 'api', 'server', 'integration', 'error', 'performance'],
+    Finance: ['invoice', 'charge', 'payment', 'refund', 'price', 'billing', 'subscription'],
+    'IT Support': ['bug', 'crash', 'code', 'api', 'server', 'integration', 'error', 'performance'],
     Security: ['login', 'password', 'access', 'hack', 'auth', 'security', 'permission'],
     General: []
 };
