@@ -23,13 +23,13 @@ app.use(cors({
 // Public routes
 app.get("/", (req, res) => res.send("Helpdesk Backend Running"));
 app.use("/auth", authRoutes);
-app.use("/attachments/download", attachmentRoutes); // Allow public download for now or handle inside
 
 // Protect all other routes by default
 const { authorize } = require("./01-auth/auth.middleware");
 app.use(authorize());
 
 // Protected routes
+app.use("/attachments/download", express.static(path.join(__dirname, "04-attachments", "uploads")));
 app.use("/users", userRoutes);
 app.use("/tickets", ticketRoutes);
 app.use("/sla", slaRoutes);

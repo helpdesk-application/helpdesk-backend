@@ -40,7 +40,7 @@ exports.register = async (req, res) => {
 
     // DB Service returns user object. We need to generate token.
     const newUser = response.data.user;
-    const token = jwt.sign({ id: newUser.id, role: newUser.role }, SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: newUser.id, role: newUser.role, department: newUser.department }, SECRET, { expiresIn: "7d" });
 
     res.json({ message: "User registered", token, user: { id: newUser.id, email: newUser.email, role: newUser.role } });
 
@@ -86,7 +86,7 @@ exports.login = async (req, res) => {
     }
 
     // 3. Generate Token
-    const token = jwt.sign({ id: user._id, role: user.role, name: user.name }, SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user._id, role: user.role, name: user.name, department: user.department }, SECRET, { expiresIn: "7d" });
 
     // 4. Log Activity
     try {

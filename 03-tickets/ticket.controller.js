@@ -14,7 +14,8 @@ const createNotification = async (userId, message, ticketId) => {
 
 const deptMapping = {
   Billing: 'Finance',
-  Technical: 'IT Support',
+  Technical: 'IT Support', // Correct naming to match User DB
+  Support: 'IT Support',   // Common alias
   Security: 'Security',
   General: 'General'
 };
@@ -99,9 +100,16 @@ exports.getTickets = async (req, res) => {
     const response = await axios.get(url);
     let tickets = response.data;
 
-    // Department Isolation
-    if (role === "Manager" || role === "Agent") {
+    // Department Isolation & Assignment Visibility
+    if (role === "Manager") {
+      // Managers see everything in their department
       tickets = tickets.filter(t => t.department === req.user.department);
+    } else if (role === "Agent") {
+      // Agents see tickets assigned to them OR tickets in their department
+      tickets = tickets.filter(t =>
+        String(t.assigned_agent_id?._id || t.assigned_agent_id) === String(userId) ||
+        t.department === req.user.department
+      );
     }
 
     res.json(tickets);
