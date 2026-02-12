@@ -69,18 +69,8 @@ exports.getAttachments = async (req, res) => {
 exports.downloadFile = async (req, res) => {
     const { filename } = req.params;
     try {
-        // 1. Find attachment metadata by filename to get ID
-        const attachmentsRes = await axios.get(DB_API);
-        // Note: Ideally we'd have a find-by-filename endpoint in DB service
-        // For now, let's assume we can fetch by filename or that the client uses the ID directly
-        // If the client provides an ID, we use that. If filename, we search.
-
-        let attachmentId = req.params.id || filename; // Assuming filename could be ID in some routes
-
-        // Actually, let's adjust the route or logic. If we have filename, we need to find the ID.
-        // For efficiency, let's just use the ID if we can.
-
-        const response = await axios.get(`${DB_API}/${attachmentId}/download`, {
+        // Call DB service using the filename-based download route
+        const response = await axios.get(`${DB_API}/filename/${filename}/download`, {
             responseType: 'arraybuffer'
         });
 

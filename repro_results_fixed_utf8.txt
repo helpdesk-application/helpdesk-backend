@@ -1,0 +1,26 @@
+﻿
+--- Testing Upload on port 3000 ---
+Γ£à Success (Port 3000): 201 {
+  ticket_id: '63f8e2f1b4e5a2b1c0d0e010',
+  uploader_id: '63f8e2f1b4e5a2b1c0d0e001',
+  filename: '7bd23650-e902-4318-b314-74bb8d3ca45c.txt',
+  original_name: 'test_upload.txt',
+  mime_type: 'text/plain',
+  size: 37,
+  _id: '698bf1262af911871850e4d7',
+  created_at: '2026-02-11T03:01:58.450Z',
+  __v: 0
+}
+
+--- Testing Upload on port 2000 ---
+Γ£à Success (Port 2000): 201 {
+  ticket_id: '63f8e2f1b4e5a2b1c0d0e010',
+  uploader_id: '63f8e2f1b4e5a2b1c0d0e001',
+  filename: 'e638310a-40d1-4dde-b4c3-994d125d8447.txt',
+  original_name: 'test_upload.txt',
+  mime_type: 'text/plain',
+  size: 37,
+  _id: '698bf1262af911871850e4d9',
+  created_at: '2026-02-11T03:01:58.562Z',
+  __v: 0
+}
