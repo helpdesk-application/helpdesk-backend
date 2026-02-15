@@ -39,12 +39,12 @@ app.use("/reports", reportRoutes);
 app.use("/admin", adminRoutes);
 app.use("/attachments", attachmentRoutes);
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("\n========================================");
   console.log("  Backend Server Started");
   console.log("========================================");
-  console.log("Server running on http://localhost:" + PORT);
+  console.log("Server running");
   console.log("\nAvailable routes:");
   console.log("  POST   /auth/login");
   console.log("  POST   /auth/register");
